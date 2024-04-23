@@ -1,7 +1,35 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy
 from sklearn.cluster import KMeans
+
+def cumulative_int(dt, x):
+    return dt * np.cumsum(x)
+
+def cumulative_trapezoid(dt, x):
+    return scipy.integrate.cumulative_trapezoid(x, dx=dt, initial=0.0)
+
+def rot_y(deg):
+    t = deg/180*np.pi
+    r = np.array([[np.cos(t),0,np.sin(t)],
+                  [0,1,0],
+                  [-np.sin(t),0,np.cos(t)]])
+    return r
+
+def rot_x(deg):
+    t = deg/180*np.pi
+    r = np.array([[1,0,0],
+                  [0,np.cos(t),-np.sin(t)],
+                  [0,np.sin(t), np.cos(t)]])
+    return r
+
+def rot_z(deg):
+    t = deg/180*np.pi
+    r = np.array([[np.cos(t),-np.sin(t),0],
+                  [np.sin(t), np.cos(t),0],
+                  [0,0,1]])
+    return r
 
 def find_corners(im,
                  hsv_range=[(50,0,120),(75,255,255)],
@@ -63,3 +91,20 @@ def find_phi(corners_0, corners_t):
 
     return phi_matrices
 
+class PhiConstraintSolver:
+    def __init__(self) -> None:
+        self.acc_history = None
+        self.dt = None
+        self.rot = rot_z(90).dot(rot_y(-90))
+
+    def accumulate(self, acc):
+        # acc = self.rot.dot(acc[:,np.newaxis]).T
+        acc = acc[np.newaxis,:]
+        if self.acc_history is None:
+            self.acc_history = acc
+        else:
+            self.acc_history = np.concatenate((self.acc_history,acc),
+                                               axis=0)
+    
+    def solve(self, phi):
+        
