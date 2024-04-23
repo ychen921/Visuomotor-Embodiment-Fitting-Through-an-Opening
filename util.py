@@ -106,5 +106,19 @@ class PhiConstraintSolver:
             self.acc_history = np.concatenate((self.acc_history,acc),
                                                axis=0)
     
-    def solve(self, phi):
+    def solve(self, phi, t):
+        phix,phiy,phiz = phi[:,2]
+        t2 = t**2
+        A = np.array([[phix,   -t, 0.,  0.,  -0.5*t2,       0.,       0.],
+                      [phiy,   0., -t,  0.,       0.,  -0.5*t2,       0.],
+                      [phiz-1, 0., 0.,  -t,       0.,       0.,  -0.5*t2]
+                    ])
+        b = np.zeros((3,1))
+
+        for i in range(3):
+            integral = cumulative_int(x=self.acc_history[:,i],dt=self.dt)
+            double_integral = cumulative_int(x=integral,dt=self.dt)
+            b[i,0] = double_integral
+
+        # solve Ax=b
         

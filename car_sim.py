@@ -12,7 +12,7 @@ from pynput import keyboard
 from multiprocessing import Process
 import matplotlib.pyplot as plt
 
-from util import PhiConstraintSolver
+from util import PhiConstraintSolver, find_corners
 
 ModelPath = './robomaster_wall.xml'
 LIN_VEL_STEP_SIZE = 0.1
@@ -111,16 +111,30 @@ if __name__ == '__main__':
     mujoco.set_mjcb_control(lambda m, d: node.vel_controller(m, d, vels))
 
     solver = PhiConstraintSolver()
-
+    start_time=3.0
+    switch_time=2.5
+    iswitch=1
+    first_switch=True
     with mujoco.viewer.launch_passive(m, d) as viewer:
         start = time.time()
         i = 0
         while viewer.is_running(): #and time.time() - start < 30:
             step_start = time.time()
-            if i%100==0:
-                vels = node.run_keyboard_control()
-                print(vels)
-            i+=1
+            # if i%100==0:
+            #     vels = node.run_keyboard_control()
+            #     print(vels)
+            # i+=1
+            if d.time > start_time and vels[1]==0:
+                 vels=(0,0.1,0)
+            if first_switch and (d.time-start_time)>switch_time:
+                first_switch=False
+                vels=(0,-1*vels[1],0)
+                start_time=d.time
+                switch_time*=2
+            else:
+                if (d.time-start_time)>iswitch*switch_time:
+                    vels=(0,-1*vels[1],0)
+                    iswitch+=1
             # mujoco.set_mjcb_control(lambda m, d: node.vel_controller(m, d, vels))
 
             mujoco.mj_step(m, d)
@@ -132,6 +146,8 @@ if __name__ == '__main__':
                 cam_img = renderer.render()
 
                 # process the corners
+                corners = find_corners(cam_img)
+                print(corners)
 
             # with viewer.lock():
             #     viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = int(d.time % 2)
