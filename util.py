@@ -42,6 +42,7 @@ def find_corners(im,
     kmeans = KMeans(n_clusters=4, random_state=0, n_init="auto").fit(ind)
     corners = kmeans.cluster_centers_
     corners = np.fliplr(corners)
+    corners = sort_corners(corners)
 
     if show:
         plt.imshow(im)
@@ -121,4 +122,5 @@ class PhiConstraintSolver:
             b[i,0] = double_integral
 
         # solve Ax=b
+        # x = 
         
