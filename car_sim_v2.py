@@ -15,7 +15,7 @@ import cv2
 
 from util import PhiConstraintSolver, find_corners, find_phi, camera_matrix, compute_3d
 
-ModelPath = './robomaster_wall_v2.xml'
+ModelPath = './model/robomaster_wall_v2.xml'
 LIN_VEL_STEP_SIZE = 0.1
 ANG_VEL_STEP_SIZE = 0.1
 
@@ -202,6 +202,7 @@ if __name__ == '__main__':
 
                     pts0_3d = compute_3d(corners_0=corners_0, Z0s=Z0s, fl=f)
                     print("================")
+                    print(f)
                     print(pts0_3d)
                     
 
