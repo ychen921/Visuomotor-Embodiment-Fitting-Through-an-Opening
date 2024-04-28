@@ -13,7 +13,7 @@ from multiprocessing import Process
 import matplotlib.pyplot as plt
 import cv2
 
-from util import PhiConstraintSolver, find_corners, find_phi
+from util import PhiConstraintSolver, find_corners, find_phi, camera_matrix, compute_3d
 
 ModelPath = './robomaster_wall_v2.xml'
 LIN_VEL_STEP_SIZE = 0.1
@@ -108,6 +108,10 @@ if __name__ == '__main__':
     cam = mujoco.MjvCamera()
     cam.type = mujoco.mjtCamera.mjCAMERA_FIXED
     cam.fixedcamid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_CAMERA, 'fixater')
+    cam_fovy = m.cam_fovy[cam.fixedcamid]
+
+    # get focal distance & camera matrix
+    f, K = camera_matrix(fovy=cam_fovy, height=480, width=640)
 
     vopt = mujoco.MjvOption()
     pert = mujoco.MjvPerturb()
@@ -144,11 +148,13 @@ if __name__ == '__main__':
         i = 0
         while viewer.is_running():  # and time.time() - start < 30:
             step_start = time.time()
-
+            # if i%100==0:
+            #     vels = node.run_keyboard_control()
+            #     print(vels)
+            # i+=1
             if d.time > start_time and vels[1] == 0:
                 vels = (0, 3.0, 0)
                 started = True
-
             if first_switch and (d.time-start_time) > switch_time:
                 first_switch = False
                 vels = (0, -1*vels[1], 0)
@@ -158,6 +164,7 @@ if __name__ == '__main__':
                 if (d.time-start_time) > iswitch*switch_time:
                     vels = (0, -1*vels[1], 0)
                     iswitch += 1
+            # mujoco.set_mjcb_control(lambda m, d: node.vel_controller(m, d, vels))
 
             mujoco.mj_step(m, d)
             acc_data = d.sensor('imu').data.copy()  # ndarray
@@ -177,7 +184,7 @@ if __name__ == '__main__':
                 cv2.imshow('fixation', cv2.cvtColor(cam_img, cv2.COLOR_RGB2BGR))
                 cv2.waitKey(1)
 
-                # process the corners
+                # process the corners (x, y)
                 corners = find_corners(cam_img)
 
                 if corners_0 is None:
@@ -192,9 +199,11 @@ if __name__ == '__main__':
                                               curr_t=d.time-start_time)
                         ans = solvers[i].solve()
                         Z0s.append(ans[0])
-                
+
+                    pts0_3d = compute_3d(corners_0=corners_0, Z0s=Z0s, fl=f)
                     print("================")
-                    print(Z0s)
+                    print(pts0_3d)
+                    
 
             # with viewer.lock():
             #     viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = int(d.time % 2)
