@@ -98,7 +98,24 @@ if __name__ == '__main__':
 
     m = mujoco.MjModel.from_xml_path(ModelPath)
     d = mujoco.MjData(m)
-    renderer = mujoco.Renderer(m, 480, 640)
+
+    # Make all the things needed to render a simulated camera
+    gl_ctx = mujoco.GLContext(640, 480)
+    gl_ctx.make_current()
+
+    scn = mujoco.MjvScene(m, maxgeom=100)
+
+    cam = mujoco.MjvCamera()
+    cam.type = mujoco.mjtCamera.mjCAMERA_FIXED
+    cam.fixedcamid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_CAMERA, 'fixater')
+
+    vopt = mujoco.MjvOption()
+    pert = mujoco.MjvPerturb()
+
+    ctx = mujoco.MjrContext(m, mujoco.mjtFontScale.mjFONTSCALE_150)
+    mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, ctx)
+
+    viewport = mujoco.MjrRect(0, 0, 640, 480)
 
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot()
@@ -127,13 +144,11 @@ if __name__ == '__main__':
         i = 0
         while viewer.is_running():  # and time.time() - start < 30:
             step_start = time.time()
-            # if i%100==0:
-            #     vels = node.run_keyboard_control()
-            #     print(vels)
-            # i+=1
+
             if d.time > start_time and vels[1] == 0:
                 vels = (0, 3.0, 0)
                 started = True
+
             if first_switch and (d.time-start_time) > switch_time:
                 first_switch = False
                 vels = (0, -1*vels[1], 0)
@@ -143,14 +158,22 @@ if __name__ == '__main__':
                 if (d.time-start_time) > iswitch*switch_time:
                     vels = (0, -1*vels[1], 0)
                     iswitch += 1
-            # mujoco.set_mjcb_control(lambda m, d: node.vel_controller(m, d, vels))
 
             mujoco.mj_step(m, d)
             acc_data = d.sensor('imu').data.copy()  # ndarray
             if d.time >= frame_period*frame_count:
                 frame_count += 1
-                renderer.update_scene(d, camera="fixater")
-                cam_img = renderer.render()
+                
+                # Render the simulated camera
+                mujoco.mjv_updateScene(m, d, vopt, pert, cam, mujoco.mjtCatBit.mjCAT_ALL, scn)
+                mujoco.mjr_render(viewport, scn, ctx)
+                cam_img = np.empty((480, 640, 3), dtype=np.uint8)
+                mujoco.mjr_readPixels(cam_img, None, viewport, ctx)
+
+                # OpenGL renders with inverted y axis
+                cam_img = cv2.flip(cam_img, 0)
+
+                # Show the simulated camera image
                 cv2.imshow('fixation', cv2.cvtColor(cam_img, cv2.COLOR_RGB2BGR))
                 cv2.waitKey(1)
 
@@ -180,10 +203,10 @@ if __name__ == '__main__':
             started_prev = started
 
     acc_data = np.array(acc_data)
-    plt.imshow(cam_img)
-    im = Image.fromarray(cam_img)
-    im.save("test_img.png")
-    plt.show(block=True)
+    # plt.imshow(cam_img)
+    # im = Image.fromarray(cam_img)
+    # im.save("test_img.png")
+    # plt.show(block=True)
 
     plt.plot(solvers[0].acc_history)
     plt.show()
