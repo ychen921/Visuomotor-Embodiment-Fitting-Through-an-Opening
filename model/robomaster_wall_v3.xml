@@ -1,6 +1,10 @@
 <mujoco>
   <compiler autolimits="true"/>
 
+  <extension>
+    <plugin plugin="mujoco.sensor.touch_grid"/>
+  </extension>
+
   <asset>
     <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1=".1 .2 .3" rgb2=".2 .3 .4"/>
     <material name="grid" texture="grid" texrepeat="1 1" texuniform="true" reflectance=".2"/>
@@ -52,8 +56,8 @@
       <site name="center_y" pos="0 0 0" type="sphere" size="0.001" axisangle="0 0 1 90"/>
       <geom name="chasis" type="mesh" mesh="chasis"/>
 
-      <site name="contact site front left" class="contact site" pos=".16 .12 .05" size=".05 .05 .05"/> <!--class="contact site" -->
-      <site name="contact site front right" class="contact site" pos=".16 -.12 .05" size=".05 .05 .05"/> <!-- class="contact site" -->
+      <site name="contact site front left" type="ellipsoid" pos=".16 .12 .05" size=".05 .05 .05"/> <!--class="contact site" -->
+      <site name="contact site front right" type="ellipsoid" pos=".16 -.12 .05" size=".05 .05 .05"/> <!-- class="contact site" -->
       <site name="imu site" pos="0 0 0"/>
 
       <body pos=".05 0 .059" quat="0 0 0 1">
@@ -129,9 +133,24 @@
   <sensor>
     <!-- <jointactuatorfrc name="right" joint="right"/>
     <jointactuatorfrc name="left" joint="left"/> -->
-    <touch name="touch front left" site="contact site front left"/>
-    <touch name="touch front right" site="contact site front right"/>
+    <!-- <touch name="touch front left" site="contact site front left"/>
+    <touch name="touch front right" site="contact site front right"/> -->
     <accelerometer name="imu" site="imu site" />
+
+    <plugin name="touch front left" plugin="mujoco.sensor.touch_grid" objtype="site" objname="contact site front left">
+      <config key="size" value="20 20"/>
+      <config key="fov" value="180 90"/>
+      <config key="gamma" value="0.7"/>
+      <config key="nchannel" value="3"/>
+    </plugin>
+
+    <plugin name="touch front right" plugin="mujoco.sensor.touch_grid" objtype="site" objname="contact site front right">
+      <config key="size" value="20 20"/>
+      <config key="fov" value="180 90"/>
+      <config key="gamma" value="0.7"/>
+      <config key="nchannel" value="3"/>
+    </plugin>
+
   </sensor>
 
 </mujoco>

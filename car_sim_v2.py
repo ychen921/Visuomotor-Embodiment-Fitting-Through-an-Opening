@@ -15,7 +15,7 @@ import cv2
 
 from util import PhiConstraintSolver, find_corners, find_phi, camera_matrix, compute_3d
 
-ModelPath = './model/robomaster_wall_v2.xml'
+ModelPath = './model/robomaster_wall_v3.xml'
 LIN_VEL_STEP_SIZE = 0.1
 ANG_VEL_STEP_SIZE = 0.1
 RES_X = 640
@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
     last_frame_ts = 0.0
     frame_count = 0
-    frame_rate = 30.0
+    frame_rate = 30.0 # 30 fps
     frame_period = 1.0/frame_rate
 
     command_period = 2.0
@@ -145,6 +145,8 @@ if __name__ == '__main__':
     corners_0 = None
     started = False
     started_prev = False
+    hor_mov_cnt = 0
+    hor_switch = 10.0
     with mujoco.viewer.launch_passive(m, d) as viewer:
         start = time.time()
         i = 0
@@ -154,22 +156,37 @@ if __name__ == '__main__':
             #     vels = node.run_keyboard_control()
             #     print(vels)
             # i+=1
-            if d.time > start_time and vels[1] == 0:
+            # ============== Moving horizonly ==============
+            if d.time > start_time and vels[1] == 0 and hor_mov_cnt < hor_switch:
                 vels = (0, 3.0, 0)
                 started = True
-            if first_switch and (d.time-start_time) > switch_time:
+            if first_switch and (d.time-start_time) > switch_time and hor_mov_cnt < hor_switch:
                 first_switch = False
                 vels = (0, -1*vels[1], 0)
                 start_time = d.time
                 switch_time *= 2
             else:
-                if (d.time-start_time) > iswitch*switch_time:
+                if (d.time-start_time) > iswitch*switch_time and hor_mov_cnt < hor_switch:
                     vels = (0, -1*vels[1], 0)
                     iswitch += 1
+
             # mujoco.set_mjcb_control(lambda m, d: node.vel_controller(m, d, vels))
+            
+            # hor_mov_cnt += 1
+
+            if iswitch*switch_time >= hor_switch:
+                vels = (8.0, 0, 0)
+
 
             mujoco.mj_step(m, d)
             acc_data = d.sensor('imu').data.copy()  # ndarray
+
+            TouchL_data = d.sensor("touch front left").data.copy()
+            TouchR_data = d.sensor("touch front right").data.copy()
+            print(np.any(TouchL_data != 0), np.any(TouchR_data != 0))
+            # print(TouchL_data.shape, TouchR_data.shape)
+
+
             if d.time >= frame_period*frame_count:
                 frame_count += 1
                 
@@ -186,6 +203,8 @@ if __name__ == '__main__':
                 cv2.imshow('fixation', cv2.cvtColor(cam_img, cv2.COLOR_RGB2BGR))
                 cv2.waitKey(1)
 
+                if hor_mov_cnt < hor_switch:
+                    continue
                 # process the corners (x, y)
                 corners = find_corners(cam_img)
 
@@ -204,9 +223,9 @@ if __name__ == '__main__':
                     
                     # Compute X0, Y0 by Z0, corners coordinates, focal length
                     pts0_3d = compute_3d(corners_0=corners_0, Z0s=Z0s, fl=f)
-                    print("================")
-                    print(f)
-                    print(pts0_3d)
+                    # print("================")
+                    # print(f)
+                    # print(pts0_3d)
                     
 
             # with viewer.lock():

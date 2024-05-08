@@ -18,7 +18,7 @@ def compute_3d(corners_0, Z0s, fl):
 
 def camera_matrix(fovy, height, width):
     f = 0.5 * height / math.tan(fovy * math.pi / 360)
-    K = np.array([[f, 0, width/2],
+    K = np.array([[-f, 0, width/2],
                   [0, f, height/2],
                   [0, 0, 1]])
     return f, K
