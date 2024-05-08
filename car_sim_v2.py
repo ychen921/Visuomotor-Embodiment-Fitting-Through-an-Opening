@@ -18,6 +18,8 @@ from util import PhiConstraintSolver, find_corners, find_phi, camera_matrix, com
 ModelPath = './model/robomaster_wall_v2.xml'
 LIN_VEL_STEP_SIZE = 0.1
 ANG_VEL_STEP_SIZE = 0.1
+RES_X = 640
+RES_Y = 480
 
 
 class KeyboardControl(object):
@@ -100,7 +102,7 @@ if __name__ == '__main__':
     d = mujoco.MjData(m)
 
     # Make all the things needed to render a simulated camera
-    gl_ctx = mujoco.GLContext(640, 480)
+    gl_ctx = mujoco.GLContext(RES_X, RES_Y)
     gl_ctx.make_current()
 
     scn = mujoco.MjvScene(m, maxgeom=100)
@@ -111,7 +113,7 @@ if __name__ == '__main__':
     cam_fovy = m.cam_fovy[cam.fixedcamid]
 
     # get focal distance & camera matrix
-    f, K = camera_matrix(fovy=cam_fovy, height=480, width=640)
+    f, K = camera_matrix(fovy=cam_fovy, height=RES_Y, width=RES_X)
 
     vopt = mujoco.MjvOption()
     pert = mujoco.MjvPerturb()
@@ -119,7 +121,7 @@ if __name__ == '__main__':
     ctx = mujoco.MjrContext(m, mujoco.mjtFontScale.mjFONTSCALE_150)
     mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, ctx)
 
-    viewport = mujoco.MjrRect(0, 0, 640, 480)
+    viewport = mujoco.MjrRect(0, 0, RES_X, RES_Y)
 
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot()
@@ -174,7 +176,7 @@ if __name__ == '__main__':
                 # Render the simulated camera
                 mujoco.mjv_updateScene(m, d, vopt, pert, cam, mujoco.mjtCatBit.mjCAT_ALL, scn)
                 mujoco.mjr_render(viewport, scn, ctx)
-                cam_img = np.empty((480, 640, 3), dtype=np.uint8)
+                cam_img = np.empty((RES_Y, RES_X, 3), dtype=np.uint8)
                 mujoco.mjr_readPixels(cam_img, None, viewport, ctx)
 
                 # OpenGL renders with inverted y axis
@@ -199,7 +201,8 @@ if __name__ == '__main__':
                                               curr_t=d.time-start_time)
                         ans = solvers[i].solve()
                         Z0s.append(ans[0])
-
+                    
+                    # Compute X0, Y0 by Z0, corners coordinates, focal length
                     pts0_3d = compute_3d(corners_0=corners_0, Z0s=Z0s, fl=f)
                     print("================")
                     print(f)
