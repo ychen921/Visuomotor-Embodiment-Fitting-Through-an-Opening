@@ -123,8 +123,16 @@
     <velocity name="shoulderv" joint="shoulder" kv=".1" />
     <velocity name="elbowv" joint="elbow" kv=".1" />
   </actuator>
-  <sensor>
+  <!-- <sensor>
     <accelerometer name="imu" site="imu site"/>
+  </sensor> -->
+  <sensor>
+    <!-- <jointactuatorfrc name="right" joint="right"/>
+    <jointactuatorfrc name="left" joint="left"/> -->
+    <touch name="touch front left" site="contact site front left"/>
+    <touch name="touch front right" site="contact site front right"/>
+    <accelerometer name="imu" site="imu site" />
   </sensor>
+
 </mujoco>
 
