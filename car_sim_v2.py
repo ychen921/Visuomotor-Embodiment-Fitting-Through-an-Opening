@@ -13,9 +13,9 @@ from multiprocessing import Process
 import matplotlib.pyplot as plt
 import cv2
 
-from util import PhiConstraintSolver, find_corners, find_phi, camera_matrix, compute_3d
+from util import PhiConstraintSolver, find_corners, find_phi, camera_matrix, compute_3d, get_touch_sensor_data
 
-ModelPath = './model/robomaster_wall_v3.xml'
+ModelPath = './model/robomaster_wall_v2.xml'
 LIN_VEL_STEP_SIZE = 0.1
 ANG_VEL_STEP_SIZE = 0.1
 RES_X = 640
@@ -139,8 +139,10 @@ if __name__ == '__main__':
     # create a solver for each of the 4 corners
     solvers = [PhiConstraintSolver(dt=frame_period) for _ in range(4)]
     start_time = 3.0
-    switch_time = 2.5
+    switch_time = 2
+    switch_tim2 = 3
     iswitch = 1
+    iswitch2 = 1
     first_switch = True
     corners_0 = None
     started = False
@@ -157,25 +159,38 @@ if __name__ == '__main__':
             #     print(vels)
             # i+=1
             # ============== Moving horizonly ==============
-            if d.time > start_time and vels[1] == 0 and hor_mov_cnt < hor_switch:
-                vels = (0, 3.0, 0)
+            if d.time > start_time and vels[1] == 0 :#and hor_mov_cnt < hor_switch:
+                vels = (3.0, 4.0, 0)
                 started = True
-            if first_switch and (d.time-start_time) > switch_time and hor_mov_cnt < hor_switch:
+
+            if first_switch and (d.time-start_time) > switch_time :#and hor_mov_cnt < hor_switch:
                 first_switch = False
-                vels = (0, -1*vels[1], 0)
+                vels = (vels[0], -1*vels[1], 0)
                 start_time = d.time
                 switch_time *= 2
             else:
-                if (d.time-start_time) > iswitch*switch_time and hor_mov_cnt < hor_switch:
-                    vels = (0, -1*vels[1], 0)
+                if (d.time-start_time) > iswitch*switch_time :#and hor_mov_cnt < hor_switch:
+                    vels = (vels[0], -1*vels[1], 0)
                     iswitch += 1
 
+                if (d.time-start_time) > iswitch2*switch_tim2 :#and hor_mov_cnt < hor_switch:
+                    vels = (-1*vels[0], vels[1], 0)
+                    iswitch2 += 1
+                    
+
+
+            # if (d.time-start_time) > iswitch2*switch_time :#and hor_mov_cnt < hor_switch:
+            #         vels = (-1*vels[0], vels[1], 0)
+            #         iswitch2 += 1
+            #         print(iswitch)
+
+                
             # mujoco.set_mjcb_control(lambda m, d: node.vel_controller(m, d, vels))
             
             # hor_mov_cnt += 1
 
-            if iswitch*switch_time >= hor_switch:
-                vels = (8.0, 0, 0)
+            # if iswitch*switch_time >= hor_switch:
+            #     vels = (8.0, 0, 0)
 
 
             mujoco.mj_step(m, d)
@@ -183,8 +198,8 @@ if __name__ == '__main__':
 
             TouchL_data = d.sensor("touch front left").data.copy()
             TouchR_data = d.sensor("touch front right").data.copy()
-            print(np.any(TouchL_data != 0), np.any(TouchR_data != 0))
-            # print(TouchL_data.shape, TouchR_data.shape)
+            TouchC_data = d.sensor("touch front center").data.copy()
+            # print(np.any(TouchL_data != 0), np.any(TouchC_data != 0), np.any(TouchR_data != 0))
 
 
             if d.time >= frame_period*frame_count:
@@ -203,8 +218,8 @@ if __name__ == '__main__':
                 cv2.imshow('fixation', cv2.cvtColor(cam_img, cv2.COLOR_RGB2BGR))
                 cv2.waitKey(1)
 
-                if hor_mov_cnt < hor_switch:
-                    continue
+                # if hor_mov_cnt < hor_switch:
+                #     continue
                 # process the corners (x, y)
                 corners = find_corners(cam_img)
 

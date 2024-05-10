@@ -5,6 +5,27 @@ import scipy
 import math
 from sklearn.cluster import KMeans
 
+def get_touch_sensor_data(d):
+    s1 = d.sensor("touch front 0").data.copy()
+
+    s2 =d.sensor("touch front 1").data.copy()
+    s3 =d.sensor("touch front 2").data.copy()
+    s4 = d.sensor("touch front 3").data.copy()
+    s5 = d.sensor("touch front 4").data.copy()
+    s6 = d.sensor("touch front 5").data.copy()
+    s7 = d.sensor("touch front 6").data.copy()
+
+    s8 = d.sensor("touch front -1").data.copy()
+    s9 = d.sensor("touch front -2").data.copy()
+    s10 = d.sensor("touch front -3").data.copy()
+    s11 = d.sensor("touch front -4").data.copy()
+    s12 = d.sensor("touch front -5").data.copy()
+    s13 = d.sensor("touch front -6").data.copy()
+
+    print('=================')
+    print(s1, s2, s3, s4, s5, s6, s7, s8, s9)
+    print(s10, s11, s12, s13)
+
 def compute_3d(corners_0, Z0s, fl):
     pts_3d = []
     for i in range(len(corners_0)):

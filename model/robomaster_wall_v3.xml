@@ -56,8 +56,8 @@
       <site name="center_y" pos="0 0 0" type="sphere" size="0.001" axisangle="0 0 1 90"/>
       <geom name="chasis" type="mesh" mesh="chasis"/>
 
-      <site name="contact site front left" type="ellipsoid" pos=".16 .12 .05" size=".05 .05 .05"/> <!--class="contact site" -->
-      <site name="contact site front right" type="ellipsoid" pos=".16 -.12 .05" size=".05 .05 .05"/> <!-- class="contact site" -->
+      <site name="contact site front left" class="contact site" pos=".16 .12 .05" size=".05 .05 .05"/> <!--class="contact site" -->
+      <site name="contact site front right" class="contact site" pos=".16 -.12 .05" size=".05 .05 .05"/> <!-- class="contact site" -->
       <site name="imu site" pos="0 0 0"/>
 
       <body pos=".05 0 .059" quat="0 0 0 1">
