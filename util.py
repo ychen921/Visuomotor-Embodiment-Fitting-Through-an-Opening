@@ -32,11 +32,11 @@ def compute_3d(corners_0, Z0s, fl):
     pts_3d = []
     for i in range(len(corners_0)):
         x,y = corners_0[i,:]
-        Z0 = Z0s[i][0]
+        Z0 = Z0s[i].item()
         X0 = x*Z0/fl
         y0 = y*Z0/fl
         pts_3d.append([X0, y0, Z0])
-    return pts_3d
+    return np.array(pts_3d)
 
 
 def camera_matrix(fovy, height, width):

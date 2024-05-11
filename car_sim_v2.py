@@ -155,7 +155,7 @@ if __name__ == '__main__':
     vx = 1.0
     vy = 4.0
     v_scale = 0.0
-    Z0s = []
+    Z0s_all = []
     with mujoco.viewer.launch_passive(m, d) as viewer:
         start = time.time()
         i = 0
@@ -215,18 +215,19 @@ if __name__ == '__main__':
             #     viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = int(d.time % 2)
 
             viewer.sync()
-
+            
             if started:
+                Z0s = []
                 for i in range(4):
                     ans = solvers[i].solve()
+                    Z0s_all.append(-1*ans[0])
                     Z0s.append(-1*ans[0])
-                    print(ans)
+                    # print(ans)
                     
-                    # # Compute X0, Y0 by Z0, corners coordinates, focal length
-                    # pts0_3d = compute_3d(corners_0=corners_0, Z0s=Z0s, fl=f)
-                    # # print("================")
-                    # # print(f)
-                    # # print(pts0_3d)
+                # Compute X0, Y0 by Z0, corners coordinates, focal length
+                pts0_3d = compute_3d(corners_0=corners_0, Z0s=Z0s, fl=f)
+                print("================")
+                print(pts0_3d)
 
     acc_data = np.array(acc_data)
     # plt.imshow(cam_img)
@@ -237,5 +238,9 @@ if __name__ == '__main__':
     plt.plot(solvers[0].acc_history)
     plt.show(block=True)
 
-    plt.plot(Z0s)
+    plt.plot(Z0s_all)
+    plt.show()
+
+    plt.scatter(pts0_3d[:,0],pts0_3d[:,1])
+    plt.gca().set_aspect("equal",adjustable="box")
     plt.show()
