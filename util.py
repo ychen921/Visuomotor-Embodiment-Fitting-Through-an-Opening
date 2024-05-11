@@ -5,6 +5,8 @@ import scipy
 import math
 from sklearn.cluster import KMeans
 
+FOCAL_LENGTH = 589 # focal length
+
 def get_touch_sensor_data(d):
     s1 = d.sensor("touch front 0").data.copy()
 
@@ -119,7 +121,7 @@ def find_phi(corners_0, corners_t):
     # go through the 4 corner points and generate the 4 different phi matrix
     phi_matrices = []
     for i in range(4):
-        dx,dy = corners_t[i,:]-corners_0[i,:]
+        dx,dy = (corners_t[i,:]-corners_0[i,:])/FOCAL_LENGTH
         phi = np.eye(3)
         phi[0,2] = dx
         phi[1,2] = dy
@@ -136,11 +138,12 @@ class PhiConstraintSolver:
         self.A = None
         self.b = None
         self.dt = dt
+        self.t_array = []
         self.rot = rot_z(90).dot(rot_y(-90))
 
-    def accumulate(self, acc, phi, curr_t):
+    def accumulate(self, acc, phi, curr_t, z_only=False):
         acc = self.rot.dot(acc[:,np.newaxis]).T
-        
+        self.t_array.append(curr_t)
         if self.acc_history is None:
             self.acc_history = acc
         else:
@@ -157,25 +160,39 @@ class PhiConstraintSolver:
         t = curr_t
         t2 = t**2
         phix,phiy,phiz = phi[:,2]
-        A = np.array([[phix,   -t, 0.,  0.,  -0.5*t2,       0.,       0.],
-                      [phiy,   0., -t,  0.,       0.,  -0.5*t2,       0.],
-                      [phiz-1, 0., 0.,  -t,       0.,       0.,  -0.5*t2]
+
+        print("==== phi ====")
+        print(phix,phiy,phiz)
+        print("=============")
+        
+        dt = np.mean(np.diff(self.t_array))
+        if z_only is False:
+
+            A = np.array([[phix,   -t, 0.,  0.,  0.5*t2,       0.,       0.],
+                      [phiy,   0., -t,  0.,       0.,  0.5*t2,       0.],
+                      [phiz-1, 0., 0.,  -t,       0.,       0.,  0.5*t2]
                     ])
+            
+            b = [None]*3
+            for i in range(3):
+                integral = cumulative_trapezoid(x=self.acc_history[:,i],dt=dt)
+                double_integral = cumulative_trapezoid(x=integral,dt=dt)
+                b[i] = double_integral
+
+            b = np.array(b) # 3 by xx
+            self.b = np.reshape(b.T, (-1,1))
+            
+        else:
+            A = np.array([phiz-1, -t, 0.5*t2])[np.newaxis,:]
+
+            integral = cumulative_trapezoid(x=self.acc_history[:,2],dt=self.dt)
+            double_integral = cumulative_trapezoid(x=integral,dt=self.dt)
+            self.b = double_integral.reshape((-1,1))
         
         if self.A is None:
             self.A = A
         else:
             self.A = np.concatenate((self.A, A),axis=0)
-        
-        b = [None]*3
-        for i in range(3):
-            integral = cumulative_trapezoid(x=self.acc_history[:,i],dt=self.dt)
-            double_integral = cumulative_trapezoid(x=integral,dt=self.dt)
-            b[i] = double_integral
-        
-        b = np.array(b) # 3 by xx
-        self.b = np.reshape(b.T, (-1,1))
-        # print((self.A.shape,self.b.shape))
 
     def solve(self):
         # solve Ax=b

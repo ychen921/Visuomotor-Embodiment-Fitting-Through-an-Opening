@@ -133,7 +133,7 @@ if __name__ == '__main__':
     frame_period = 1.0/frame_rate
 
     command_period = 2.0
-    vels = (0, 0, 0)
+    vels = [0, 0, 0]
     mujoco.set_mjcb_control(lambda m, d: node.vel_controller(m, d, vels))
 
     # create a solver for each of the 4 corners
@@ -146,52 +146,31 @@ if __name__ == '__main__':
     first_switch = True
     corners_0 = None
     started = False
-    started_prev = False
     hor_mov_cnt = 0
     hor_switch = 10.0
+
+    a = 1
+    b = 3
+    w = 2*np.pi/4.0
+    vx = 1.0
+    vy = 4.0
+    v_scale = 0.0
+    Z0s = []
     with mujoco.viewer.launch_passive(m, d) as viewer:
         start = time.time()
         i = 0
         while viewer.is_running():  # and time.time() - start < 30:
             step_start = time.time()
-            # if i%100==0:
-            #     vels = node.run_keyboard_control()
-            #     print(vels)
-            # i+=1
-            # ============== Moving horizonly ==============
-            if d.time > start_time and vels[1] == 0 :#and hor_mov_cnt < hor_switch:
-                vels = (3.0, 4.0, 0)
-                started = True
-
-            if first_switch and (d.time-start_time) > switch_time :#and hor_mov_cnt < hor_switch:
-                first_switch = False
-                vels = (vels[0], -1*vels[1], 0)
-                start_time = d.time
-                switch_time *= 2
-            else:
-                if (d.time-start_time) > iswitch*switch_time :#and hor_mov_cnt < hor_switch:
-                    vels = (vels[0], -1*vels[1], 0)
-                    iswitch += 1
-
-                if (d.time-start_time) > iswitch2*switch_tim2 :#and hor_mov_cnt < hor_switch:
-                    vels = (-1*vels[0], vels[1], 0)
-                    iswitch2 += 1
-                    
-
-
-            # if (d.time-start_time) > iswitch2*switch_time :#and hor_mov_cnt < hor_switch:
-            #         vels = (-1*vels[0], vels[1], 0)
-            #         iswitch2 += 1
-            #         print(iswitch)
-
-                
-            # mujoco.set_mjcb_control(lambda m, d: node.vel_controller(m, d, vels))
             
-            # hor_mov_cnt += 1
+            if d.time > start_time:
+                started = True
+            
+                t = d.time-start_time
+                vx = 2*w*a*np.cos(w*t-np.pi/2)
+                vy = -2*w*b*np.sin(w*t-np.pi/2)
 
-            # if iswitch*switch_time >= hor_switch:
-            #     vels = (8.0, 0, 0)
-
+                vels[0] = vx
+                vels[1] = vy
 
             mujoco.mj_step(m, d)
             acc_data = d.sensor('imu').data.copy()  # ndarray
@@ -200,7 +179,6 @@ if __name__ == '__main__':
             TouchR_data = d.sensor("touch front right").data.copy()
             TouchC_data = d.sensor("touch front center").data.copy()
             # print(np.any(TouchL_data != 0), np.any(TouchC_data != 0), np.any(TouchR_data != 0))
-
 
             if d.time >= frame_period*frame_count:
                 frame_count += 1
@@ -226,28 +204,29 @@ if __name__ == '__main__':
                 if corners_0 is None:
                     corners_0 = corners
                     
-                if started_prev:
-                    phi_matrices = find_phi(corners_0=corners_0,
-                                            corners_t=corners)
-                    Z0s = []
-                    for i in range(4):
-                        solvers[i].accumulate(acc=acc_data, phi=phi_matrices[i],
-                                              curr_t=d.time-start_time)
-                        ans = solvers[i].solve()
-                        Z0s.append(ans[0])
+                phi_matrices = find_phi(corners_0=corners_0,
+                                        corners_t=corners)
+                
+                for i in range(4):
+                    solvers[i].accumulate(acc=acc_data, phi=phi_matrices[i],
+                                          curr_t=d.time,z_only=True)
                     
-                    # Compute X0, Y0 by Z0, corners coordinates, focal length
-                    pts0_3d = compute_3d(corners_0=corners_0, Z0s=Z0s, fl=f)
-                    # print("================")
-                    # print(f)
-                    # print(pts0_3d)
-                    
-
             # with viewer.lock():
             #     viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = int(d.time % 2)
 
             viewer.sync()
-            started_prev = started
+
+            if started:
+                for i in range(4):
+                    ans = solvers[i].solve()
+                    Z0s.append(-1*ans[0])
+                    print(ans)
+                    
+                    # # Compute X0, Y0 by Z0, corners coordinates, focal length
+                    # pts0_3d = compute_3d(corners_0=corners_0, Z0s=Z0s, fl=f)
+                    # # print("================")
+                    # # print(f)
+                    # # print(pts0_3d)
 
     acc_data = np.array(acc_data)
     # plt.imshow(cam_img)
@@ -256,4 +235,7 @@ if __name__ == '__main__':
     # plt.show(block=True)
 
     plt.plot(solvers[0].acc_history)
+    plt.show(block=True)
+
+    plt.plot(Z0s)
     plt.show()
