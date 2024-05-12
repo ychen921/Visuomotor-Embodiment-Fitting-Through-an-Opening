@@ -52,24 +52,11 @@
       <site name="center_y" pos="0 0 0" type="sphere" size="0.001" axisangle="0 0 1 90"/>
       <geom name="chasis" type="mesh" mesh="chasis"/>
 
-      <site name="contact site front left" type="box" pos=".2 .12 .05" size=".05 .05 .05"/>
-      <site name="contact site front right" type="box" pos=".2 -.12 .05" size=".05 .05 .05"/>
-      <site name="contact site front center" type="box" pos=".2 0 .05" size=".05 .05 .05"/>
-      <!-- <site name="contact site front 1" type="box" pos=".2 0 .05" size=".1 .1 .1"/>
-      <site name="contact site front 2" type="box" pos=".2 .02 .05" size=".1 .1 .1"/>
-      <site name="contact site front 3" type="box" pos=".2 .04 .05" size=".1 .1 .1"/>
-      <site name="contact site front 4" type="box" pos=".2 .06 .05" size=".1 .1 .1"/>
-      <site name="contact site front 5" type="box" pos=".2 .08 .05" size=".1 .1 .1"/>
-      <site name="contact site front 6" type="box" pos=".2 .1 .05" size=".1 .1 .1"/>
-      <site name="contact site front 7" type="box" pos=".2 .12 .05" size=".1 .1 .1"/>
+      <site name="contact site front left" class="contact site" pos=".25 .12 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1" />
+      <site name="contact site front right" class="contact site" pos=".25 -.12 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1"/>
+      <site name="contact site front center" class="contact site" pos=".25 0 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1"/>
 
-      <site name="contact site front -2" type="box" pos=".2 -.02 .05" size=".1 .1 .1"/>
-      <site name="contact site front -3" type="box" pos=".2 -.04 .05" size=".1 .1 .1"/>
-      <site name="contact site front -4" type="box" pos=".2 -.06 .05" size=".1 .1 .1"/>
-      <site name="contact site front -5" type="box" pos=".2 -.08 .05" size=".1 .1 .1"/>
-      <site name="contact site front -6" type="box" pos=".2 -.1 .05" size=".1 .1 .1"/>
-      <site name="contact site front -7" type="box" pos=".2 -.12 .05" size=".1 .1 .1"/> -->
-
+      <!-- <site name="contact site center" class="contact site" pos=".25 0 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1"/> -->
       <site name="imu site" pos="0 0 0"/>
 
       <body pos=".05 0 .059" quat="0 0 0 1">
@@ -148,23 +135,7 @@
     <touch name="touch front left" site="contact site front left"/>
     <touch name="touch front right" site="contact site front right"/>
     <touch name="touch front center" site="contact site front center"/>
-
-    <!-- <touch name="touch front 0" site="contact site front 1"/>
-
-    <touch name="touch front 1" site="contact site front 2"/>
-    <touch name="touch front 2" site="contact site front 3"/>
-    <touch name="touch front 3" site="contact site front 4"/>
-    <touch name="touch front 4" site="contact site front 5"/>
-    <touch name="touch front 5" site="contact site front 6"/>
-    <touch name="touch front 6" site="contact site front 7"/>
-
-    <touch name="touch front -1" site="contact site front -2"/>
-    <touch name="touch front -2" site="contact site front -3"/>
-    <touch name="touch front -3" site="contact site front -4"/>
-    <touch name="touch front -4" site="contact site front -5"/>
-    <touch name="touch front -5" site="contact site front -6"/>
-    <touch name="touch front -6" site="contact site front -7"/> -->
-
+    <!-- <touch name="touch front center" site="contact site center"/> -->
     <accelerometer name="imu" site="imu site" />
   </sensor>
 

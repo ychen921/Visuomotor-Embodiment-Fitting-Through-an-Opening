@@ -140,20 +140,19 @@ if __name__ == '__main__':
     solvers = [PhiConstraintSolver(dt=frame_period) for _ in range(4)]
     start_time = 3.0
     switch_time = 2
-    switch_tim2 = 3
     iswitch = 1
-    iswitch2 = 1
     first_switch = True
     corners_0 = None
     started = False
-    hor_mov_cnt = 0
-    hor_switch = 10.0
+
+    hor_switch = 40
+    hor__flag = False
 
     a = 1
     b = 3
     w = 2*np.pi/4.0
-    vx = 1.0
-    vy = 4.0
+    vx = 1.5
+    vy = 4.5
     v_scale = 0.0
     Z0s_all = []
     with mujoco.viewer.launch_passive(m, d) as viewer:
@@ -162,7 +161,7 @@ if __name__ == '__main__':
         while viewer.is_running():  # and time.time() - start < 30:
             step_start = time.time()
             
-            if d.time > start_time:
+            if d.time > start_time and d.time < hor_switch:
                 started = True
             
                 t = d.time-start_time
@@ -172,13 +171,23 @@ if __name__ == '__main__':
                 vels[0] = vx
                 vels[1] = vy
 
+            # Move foward
+            if d.time > hor_switch and contacts <= 4:
+                hor__flag = True
+                vels[0] = 8.0
+                vels[1] = 0.0
+
             mujoco.mj_step(m, d)
             acc_data = d.sensor('imu').data.copy()  # ndarray
+            contacts = d.ncon # Number of contact
 
-            TouchL_data = d.sensor("touch front left").data.copy()
-            TouchR_data = d.sensor("touch front right").data.copy()
-            TouchC_data = d.sensor("touch front center").data.copy()
-            # print(np.any(TouchL_data != 0), np.any(TouchC_data != 0), np.any(TouchR_data != 0))
+            if hor__flag == True and contacts > 4:
+                # print(np.any(TouchL_data != 0), np.any(TouchC_data != 0), np.any(TouchR_data != 0))
+                # print(np.any(TouchC_data != 0))
+                print('Collision')
+                vels[0] = 0.0
+                vels[1] = 0.0
+
 
             if d.time >= frame_period*frame_count:
                 frame_count += 1
@@ -196,8 +205,8 @@ if __name__ == '__main__':
                 cv2.imshow('fixation', cv2.cvtColor(cam_img, cv2.COLOR_RGB2BGR))
                 cv2.waitKey(1)
 
-                # if hor_mov_cnt < hor_switch:
-                #     continue
+                if hor__flag == True:
+                    continue
                 # process the corners (x, y)
                 corners = find_corners(cam_img)
 
@@ -216,7 +225,7 @@ if __name__ == '__main__':
 
             viewer.sync()
             
-            if started:
+            if started and hor__flag == False:
                 Z0s = []
                 for i in range(4):
                     ans = solvers[i].solve()
