@@ -173,12 +173,13 @@ if __name__ == '__main__':
                 vels[0] = vx
                 vels[1] = vy
 
-            # Move foward
+            # Move horizonlly
             if d.time > hor_switch and forward_flag == False:
                 hor_flag = True
                 vels[0] = 0.0
                 vels[1] = -2.0
 
+            # Move forward to the wall
             if d.time > forward_switch:
                 hor_flag = False
                 forward_flag = True
