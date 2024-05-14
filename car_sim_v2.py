@@ -188,14 +188,10 @@ if __name__ == '__main__':
 
             mujoco.mj_step(m, d)
             acc_data = d.sensor('imu').data.copy()  # ndarray
-            # contact_left = d.ncon('front_sphere_left')
-            # contact_right = d.ncon('front_sphere_right')
             contact = d.ncon
             
 
             if forward_flag == True and contact > 4:
-                # print(np.any(TouchL_data != 0), np.any(TouchC_data != 0), np.any(TouchR_data != 0))
-                # print(np.any(TouchC_data != 0))
                 print('Collision:', contact)
                 vels[0] = 0.0
                 vels[1] = 0.0
@@ -237,7 +233,7 @@ if __name__ == '__main__':
 
             viewer.sync()
             
-            if started and hor_flag == False:
+            if started and forward_flag == False:
                 Z0s = []
                 for i in range(4):
                     ans = solvers[i].solve()
