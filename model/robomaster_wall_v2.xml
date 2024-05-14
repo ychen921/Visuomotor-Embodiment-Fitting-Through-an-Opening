@@ -43,6 +43,7 @@
         <geom name="wall top" type="box" size="0.05 0.2 0.7" pos="0 0 1.3" rgba="0 1 0 1"/>
     </body>
     
+
     <body name="car" pos="0 0 .150">
       <joint armature="0" axis="1 0 0" damping="50" limited="false" name="rootx" pos="0 0 0" type="slide" actuatorfrclimited="false"/>
       <joint armature="0" axis="0 1 0" damping="50" limited="false" name="rooty" pos="0 0 0" stiffness="0" type="slide" actuatorfrclimited="false"/>
@@ -52,11 +53,8 @@
       <site name="center_y" pos="0 0 0" type="sphere" size="0.001" axisangle="0 0 1 90"/>
       <geom name="chasis" type="mesh" mesh="chasis"/>
 
-      <site name="contact site front left" class="contact site" pos=".25 .12 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1" />
-      <site name="contact site front right" class="contact site" pos=".25 -.12 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1"/>
-      <site name="contact site front center" class="contact site" pos=".25 0 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1"/>
-
-      <!-- <site name="contact site center" class="contact site" pos=".25 0 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1"/> -->
+      <!-- <site name="contact site front left" class="contact site" pos=".25 .12 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1" />
+      <site name="contact site front right" class="contact site" pos=".25 -.12 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1"/> -->
       <site name="imu site" pos="0 0 0"/>
 
       <body pos=".05 0 .059" quat="0 0 0 1">
@@ -116,6 +114,15 @@
         <joint name="fleft-alt"/>
         <geom name="flw-a" class="wheel"/>
       </body>
+
+      <!-- <body name="front sphere left" pos="-.12 .09 -.07" zaxis="1 0 0">
+        <joint name="fleft-alt"/>
+        <geom name="flw-a" class="wheel"/>
+      </body> -->
+
+      <geom name="front_sphere_left" type="sphere" pos="0.16 0.12 0.05" size="0.03" rgba="0.5 0 0.5 1"/>
+      <geom name="front_sphere_right" type="sphere" pos="0.16 -0.12 0.05" size="0.03" rgba="0.5 0 0.5 1"/>
+
     </body>
   </worldbody>
 
@@ -132,10 +139,8 @@
   <sensor>
     <!-- <jointactuatorfrc name="right" joint="right"/>
     <jointactuatorfrc name="left" joint="left"/> -->
-    <touch name="touch front left" site="contact site front left"/>
-    <touch name="touch front right" site="contact site front right"/>
-    <touch name="touch front center" site="contact site front center"/>
-    <!-- <touch name="touch front center" site="contact site center"/> -->
+    <!-- <touch name="touch front left" site="contact site front left"/>
+    <touch name="touch front right" site="contact site front right"/> -->
     <accelerometer name="imu" site="imu site" />
   </sensor>
 

@@ -145,14 +145,16 @@ if __name__ == '__main__':
     corners_0 = None
     started = False
 
-    hor_switch = 40
-    hor__flag = False
+    hor_switch = 30
+    hor_flag = False
+    forward_switch = 35
+    forward_flag = False
 
     a = 1
     b = 3
     w = 2*np.pi/4.0
     vx = 1.5
-    vy = 4.5
+    vy = 6.5
     v_scale = 0.0
     Z0s_all = []
     with mujoco.viewer.launch_passive(m, d) as viewer:
@@ -172,19 +174,28 @@ if __name__ == '__main__':
                 vels[1] = vy
 
             # Move foward
-            if d.time > hor_switch and contacts <= 4:
-                hor__flag = True
+            if d.time > hor_switch and forward_flag == False:
+                hor_flag = True
+                vels[0] = 0.0
+                vels[1] = -2.0
+
+            if d.time > forward_switch:
+                hor_flag = False
+                forward_flag = True
                 vels[0] = 8.0
                 vels[1] = 0.0
 
             mujoco.mj_step(m, d)
             acc_data = d.sensor('imu').data.copy()  # ndarray
-            contacts = d.ncon # Number of contact
+            # contact_left = d.ncon('front_sphere_left')
+            # contact_right = d.ncon('front_sphere_right')
+            contact = d.ncon
+            
 
-            if hor__flag == True and contacts > 4:
+            if forward_flag == True and contact > 4:
                 # print(np.any(TouchL_data != 0), np.any(TouchC_data != 0), np.any(TouchR_data != 0))
                 # print(np.any(TouchC_data != 0))
-                print('Collision')
+                print('Collision:', contact)
                 vels[0] = 0.0
                 vels[1] = 0.0
 
@@ -205,7 +216,7 @@ if __name__ == '__main__':
                 cv2.imshow('fixation', cv2.cvtColor(cam_img, cv2.COLOR_RGB2BGR))
                 cv2.waitKey(1)
 
-                if hor__flag == True:
+                if forward_flag == True:
                     continue
                 # process the corners (x, y)
                 corners = find_corners(cam_img)
@@ -225,7 +236,7 @@ if __name__ == '__main__':
 
             viewer.sync()
             
-            if started and hor__flag == False:
+            if started and hor_flag == False:
                 Z0s = []
                 for i in range(4):
                     ans = solvers[i].solve()
