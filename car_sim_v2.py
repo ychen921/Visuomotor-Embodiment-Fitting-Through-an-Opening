@@ -190,9 +190,8 @@ if __name__ == '__main__':
             acc_data = d.sensor('imu').data.copy()  # ndarray
             contact = d.ncon
             
-
             if forward_flag == True and contact > 4:
-                print('Collision:', contact)
+                # print('Collision:', contact)
                 vels[0] = 0.0
                 vels[1] = 0.0
 
@@ -208,14 +207,25 @@ if __name__ == '__main__':
 
                 # OpenGL renders with inverted y axis
                 cam_img = cv2.flip(cam_img, 0)
-                ball_detection(cam_img)
 
                 # Show the simulated camera image
                 cv2.imshow('fixation', cv2.cvtColor(cam_img, cv2.COLOR_RGB2BGR))
                 cv2.waitKey(1)
 
+                if forward_flag == True and contact > 4:
+                    ball_centers, distance = ball_detection(cam_img) # ball centers
+                    
+                    print('\n#========= Site centers =========#')
+                    print('Collisions: ', contact)
+                    print('Centers: ', ball_centers)
+                    print('Distance: ', distance)
+                    print('#===============================#')
+                    continue
+
                 if forward_flag == True:
                     continue
+ 
+
                 # process the corners (x, y)
                 corners = find_corners(cam_img)
 
@@ -248,10 +258,6 @@ if __name__ == '__main__':
                 print(pts0_3d)
 
     acc_data = np.array(acc_data)
-    # plt.imshow(cam_img)
-    # im = Image.fromarray(cam_img)
-    # im.save("test_img.png")
-    # plt.show(block=True)
 
     plt.plot(solvers[0].acc_history)
     plt.show(block=True)

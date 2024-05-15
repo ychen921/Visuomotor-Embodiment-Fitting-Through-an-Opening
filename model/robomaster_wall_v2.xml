@@ -120,8 +120,8 @@
         <geom name="flw-a" class="wheel"/>
       </body> -->
 
-      <geom name="front_sphere_left" type="sphere" pos="0.16 0.12 0.1" size="0.05" rgba=".5 .1 .1 1"/>
-      <geom name="front_sphere_right" type="sphere" pos="0.16 -0.12 0.1" size="0.05" rgba=".5 .1 .1 1"/>
+      <geom name="front_sphere_left" type="sphere" pos="0.16 0.1 0.1" size="0.05" rgba=".5 .1 .1 1"/>
+      <geom name="front_sphere_right" type="sphere" pos="0.16 -0.1 0.1" size="0.05" rgba=".5 .1 .1 1"/>
 
     </body>
   </worldbody>
@@ -130,7 +130,7 @@
     <motor name="forward" site="center_x" ctrlrange="-100 100"/>
     <motor name="turn" joint="rootz" ctrlrange="-2 2"/>
     <motor name="horizontal" site="center_y" ctrlrange="-100 100"/>
-    <velocity name="shoulderv" joint="shoulder" kv=".1" />
+    <velocity name="shoulderv" joint="shoulder" kv=".9" />
     <velocity name="elbowv" joint="elbow" kv=".1" />
   </actuator>
   <!-- <sensor>
