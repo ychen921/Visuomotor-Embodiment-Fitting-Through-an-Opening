@@ -57,7 +57,7 @@
       <site name="contact site front right" class="contact site" pos=".25 -.12 .05" size=".1 .1 .1" rgba=".1 .1 .1 0.1"/> -->
       <site name="imu site" pos="0 0 0"/>
 
-      <body pos=".05 0 .059" quat="0 0 0 1">
+      <body pos="-.03 0 .059" quat="0 0 0 1">
         <geom name="upper arm" type="capsule" size="0.015" fromto="0 0 0  0 0 .131" rgba=".5 .1 .1 1"/>
         <joint name="shoulder"/>
         <geom name="shoulder" type="cylinder" pos="0 0 0" size=".025 .01" rgba=".5 .1 .8 .5" mass="0" group="1"/>
@@ -120,8 +120,8 @@
         <geom name="flw-a" class="wheel"/>
       </body> -->
 
-      <geom name="front_sphere_left" type="sphere" pos="0.16 0.12 0.05" size="0.03" rgba="0.5 0 0.5 1"/>
-      <geom name="front_sphere_right" type="sphere" pos="0.16 -0.12 0.05" size="0.03" rgba="0.5 0 0.5 1"/>
+      <geom name="front_sphere_left" type="sphere" pos="0.16 0.12 0.1" size="0.05" rgba=".5 .1 .1 1"/>
+      <geom name="front_sphere_right" type="sphere" pos="0.16 -0.12 0.1" size="0.05" rgba=".5 .1 .1 1"/>
 
     </body>
   </worldbody>

@@ -13,7 +13,7 @@ from multiprocessing import Process
 import matplotlib.pyplot as plt
 import cv2
 
-from util import PhiConstraintSolver, find_corners, find_phi, camera_matrix, compute_3d, get_touch_sensor_data
+from util import PhiConstraintSolver, find_corners, find_phi, camera_matrix, compute_3d, ball_detection
 
 ModelPath = './model/robomaster_wall_v2.xml'
 LIN_VEL_STEP_SIZE = 0.1
@@ -208,6 +208,7 @@ if __name__ == '__main__':
 
                 # OpenGL renders with inverted y axis
                 cam_img = cv2.flip(cam_img, 0)
+                ball_detection(cam_img)
 
                 # Show the simulated camera image
                 cv2.imshow('fixation', cv2.cvtColor(cam_img, cv2.COLOR_RGB2BGR))
