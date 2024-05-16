@@ -15,7 +15,7 @@ import cv2
 
 from util import PhiConstraintSolver, find_corners, find_phi, camera_matrix, compute_3d, ball_detection
 
-ModelPath = './model/robomaster_wall_v2.xml'
+ModelPath = './model/robomaster_wide_opening.xml'
 LIN_VEL_STEP_SIZE = 0.1
 ANG_VEL_STEP_SIZE = 0.1
 RES_X = 640
@@ -145,7 +145,7 @@ if __name__ == '__main__':
     corners_0 = None
     started = False
 
-    hor_switch = 30
+    hor_switch = 10
     hor_flag = False
     forward_switch = 35
     forward_flag = False
@@ -157,6 +157,13 @@ if __name__ == '__main__':
     vy = 6.5
     v_scale = 0.0
     Z0s_all = []
+
+    Kp = 0.1
+    Kd = 0.001
+    e_hor = None
+    e_hor_last = None
+    e_hor_diff = None
+    e_hor_sm = None
     with mujoco.viewer.launch_passive(m, d) as viewer:
         start = time.time()
         i = 0
@@ -173,27 +180,33 @@ if __name__ == '__main__':
                 vels[0] = vx
                 vels[1] = vy
 
-            # Move horizonlly
-            if d.time > hor_switch and forward_flag == False:
+            # # Move horizonlly
+            if d.time > hor_switch and hor_flag is False:
+                vels[0] = 0
                 hor_flag = True
-                vels[0] = 0.0
-                vels[1] = -2.0
 
             # Move forward to the wall
-            if d.time > forward_switch:
-                hor_flag = False
-                forward_flag = True
-                vels[0] = 8.0
-                vels[1] = 0.0
+            # if d.time > forward_switch:
+            #     hor_flag = False
+            #     forward_flag = True
+            #     vels[0] = 8.0
+            #     vels[1] = 0.0
 
             mujoco.mj_step(m, d)
             acc_data = d.sensor('imu').data.copy()  # ndarray
             contact = d.ncon
             
-            if forward_flag == True and contact > 4:
-                # print('Collision:', contact)
+            # if forward_flag == True and contact > 4:
+            #     # print('Collision:', contact)
+            #     vels[0] = 0.0
+            #     vels[1] = 0.0
+
+            if contact > 4:
+                print("cannot pass through opening")
+                print('Collision:', contact)
                 vels[0] = 0.0
                 vels[1] = 0.0
+                break
 
 
             if d.time >= frame_period*frame_count:
@@ -212,22 +225,42 @@ if __name__ == '__main__':
                 cv2.imshow('fixation', cv2.cvtColor(cam_img, cv2.COLOR_RGB2BGR))
                 cv2.waitKey(1)
 
-                if forward_flag == True and contact > 4:
-                    ball_centers, distance = ball_detection(cam_img) # ball centers
+                # if forward_flag == True and contact > 4:
+                #     ball_centers, distance = ball_detection(cam_img) # ball centers
                     
-                    print('\n#========= Site centers =========#')
-                    print('Collisions: ', contact)
-                    print('Centers: ', ball_centers)
-                    print('Distance: ', distance)
-                    print('#===============================#')
-                    continue
+                #     print('\n#========= Site centers =========#')
+                #     print('Collisions: ', contact)
+                #     print('Centers: ', ball_centers)
+                #     print('Distance: ', distance)
+                #     print('#===============================#')
+                #     continue
 
                 if forward_flag == True:
                     continue
- 
 
                 # process the corners (x, y)
                 corners = find_corners(cam_img)
+
+                if hor_flag == True:
+                    if e_hor is None:
+                        e_hor = np.mean(corners[:,0])-RES_X/2
+                        e_hor_last = e_hor
+                        e_hor_sm = e_hor
+                        vy = Kp*e_hor
+                    else:
+                        e_hor = np.mean(corners[:,0])-RES_X/2
+                        e_hor_sm = e_hor_sm*0.9 + e_hor*0.1
+                        e_hor_diff = e_hor-e_hor_last
+                        e_hor_last = e_hor
+                        vy = Kp*e_hor + Kd*e_hor_diff
+                    print(f"ERROR : {e_hor}, {e_hor_sm}")
+                    if np.abs(e_hor_sm) < 5:
+                        forward_flag = True
+                        vels[0] = 8.0
+                        vels[1] = 0.0
+                        continue
+                    else:
+                        vels[1] = -vy
 
                 if corners_0 is None:
                     corners_0 = corners

@@ -118,6 +118,9 @@ def find_corners(im,
     kmeans = KMeans(n_clusters=4, random_state=0, n_init="auto").fit(ind)
     corners = kmeans.cluster_centers_
     corners = np.fliplr(corners)
+
+    if corners.shape[0]<4:
+        return None
     # upper left -> upper right -> lower right -> lower left
     # corners are in (x,y)
     corners = sort_corners(corners)
@@ -138,6 +141,12 @@ def sort_corners(corners):
     i3 = np.argwhere((offset[:,0]>0)&(offset[:,1]>0))[0,0]
     i4 = np.argwhere((offset[:,0]<0)&(offset[:,1]>0))[0,0]
     return corners[[i1,i2,i3,i4]]
+
+def get_opening_width(corners):
+    width_top = np.abs(corners[0,0]-corners[1,0])
+    width_bottom = np.abs(corners[2,0]-corners[3,0])
+
+    return (width_top+width_bottom)/2
 
 def find_phi(corners_0, corners_t):
     """find phi from the shift in x and y pixel positions
